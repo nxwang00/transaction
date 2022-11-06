@@ -1,17 +1,19 @@
 package handler
 
 import (
-	"log"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"strings"
-	"reflect"
+	"log"
 	"net/http"
+	"reflect"
+	"strconv"
+	"strings"
+
 	"github.com/golang/gddo/httputil/header"
 
-	db "github.com/test/transaction/db"
+	"github.com/test/transaction/db"
 	model "github.com/test/transaction/model"
 )
 
@@ -131,7 +133,7 @@ func httpSendResponse(w http.ResponseWriter, code int, resp interface{}, err err
 }
 
 func CreateTransaction(w http.ResponseWriter, r *http.Request) {
-	log.Printf("============== Add Domain ===============\n")
+	log.Printf("============== Add Transaction ===============\n")
 	log.Printf("%s http://%s%s", r.Method, r.Host, r.RequestURI)
 
 	var transaction model.TransactionReq
@@ -145,20 +147,58 @@ func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	httpSendResponse(w, code, resp, err)
 }
 
-// ReadDomains is an httpHandler for route GET /domains
 func ReadTransactions(w http.ResponseWriter, r *http.Request) {
-	log.Printf("============== Get All Domains ===============\n")
+	log.Printf("============== Get All Transactions with pagination and filter ===============\n")
 	log.Printf("%s http://%s%s", r.Method, r.Host, r.RequestURI)
 
-	// var err error
-	// var resp []*model.Domain
-	// var code int
+	var pageInfo = model.PageInfo{}
+	var filterInfo = model.TransactionReq{}
+	params := r.URL.Query()
+	for k, v := range params {
+		if k == "page_num" {
+			pageNum, err := strconv.Atoi(v[0])
+			if err != nil {
+				fmt.Println("page number -> converting string to int is failed")
+				return
+			}
+			pageInfo.Page_Number = pageNum
+		}
+		if k == "page_size" {
+			pageSize, err := strconv.Atoi(v[0])
+			if err != nil {
+				fmt.Println("page size -> converting string to int is failed")
+				return
+			}
+			pageInfo.Page_Size = pageSize
+		}
 
-	// if !reqIsSuperuser(r) {
-	// 	code = http.StatusUnauthorized
-	// 	err = fmt.Errorf("Unauthorized")
-	// } else {
-	// 	resp = db.SelectDomains()
-	// }
-	// httpSendResponse(w, code, resp, err)
+		if k == "origin" {
+			filterInfo.Origin = v[0]
+		}
+		if k == "user_id" {
+			userID, err := strconv.Atoi(v[0])
+			if err != nil {
+				fmt.Println("User Id -> converting string to int is failed")
+				return
+			}
+			filterInfo.User_ID = userID
+		}
+		if k == "amount" {
+			filterInfo.Amount = "$" + v[0]
+		}
+		if k == "op_type" {
+			filterInfo.Op_Type = v[0]
+		}
+		if k == "registered_at" {
+			filterInfo.Registered_At = v[0]
+		}
+	}
+
+	var err error
+	var resp []*model.Transaction
+	var code int
+
+	resp = db.SelectTransactions(pageInfo, filterInfo)
+
+	httpSendResponse(w, code, resp, err)
 }
