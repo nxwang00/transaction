@@ -11,8 +11,8 @@ import (
 	model "github.com/test/transaction/model"
 )
 
-var DB_HOST = "localhost"
-var DB_PORT = 5432
+var DB_HOST = "host.docker.internal"
+var DB_PORT = 5455
 var DB_USER = "postgres"
 var DB_PASSWORD = "Mystar123!@#"
 var DB_NAME = "Transaction"
