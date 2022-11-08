@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	_ "github.com/lib/pq"
-	model "github.com/test/transaction/model"
+	model "github.com/server/transaction/model"
 )
 
 var DB_HOST = "host.docker.internal"
@@ -44,49 +44,18 @@ func setupDB() *sql.DB {
 }
 
 // Insert allows populating database
-func InsertTransaction(transaction *model.TransactionReq) (*model.Transaction, error) {
+func InsertTransaction(transaction *model.TransactionReq) (string, error) {
 	db := setupDB()
 
 	var lastInsertID int
 	query := `INSERT INTO trans (origin, user_id, amount, op_type, registered_at) VALUES($1, $2, $3, $4, $5) returning id`
 	err := db.QueryRow(query, transaction.Origin, transaction.User_ID, transaction.Amount, transaction.Op_Type, transaction.Registered_At).Scan(&lastInsertID)
 	if err != nil {
-		return nil, err
+		return "error", err
 	}
 
 	// Select the inserted record and return
-	return SelectTransaction(lastInsertID), nil
-}
-
-// Select the record with the id
-func SelectTransaction(transactionId int) *model.Transaction {
-	db := setupDB()
-	var rows *sql.Rows
-	var err error
-
-	rows, err = db.Query("SELECT id, origin, user_id, amount, op_type, registered_At FROM trans WHERE id=$1", transactionId)
-	if err != nil {
-		return nil
-	}
-	defer rows.Close()
-
-	var transaction *model.Transaction
-
-	var id int
-	var origin sql.NullString
-	var user_id int
-	var amount string
-	var op_type sql.NullString
-	var registered_at sql.NullString
-
-	if rows.Next() {
-		err = rows.Scan(&id)
-		if err == nil {
-			transaction = &model.Transaction{ID: id, Origin: origin.String, User_ID: user_id, Amount: amount, Op_Type: op_type.String, Registered_At: registered_at.String}
-		}
-	}
-
-	return transaction
+	return "One transaction inserted", nil
 }
 
 // Select returns the whole database

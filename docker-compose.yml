@@ -34,6 +34,7 @@ services:
       - "5455:5432"
     volumes:
       - ./pg_data:/var/lib/postgresql/data
+      - ./scripts/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
     networks:
       - learning
 

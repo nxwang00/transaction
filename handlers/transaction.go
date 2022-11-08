@@ -13,8 +13,8 @@ import (
 
 	"github.com/golang/gddo/httputil/header"
 
-	"github.com/test/transaction/db"
-	model "github.com/test/transaction/model"
+	"github.com/server/transaction/db"
+	model "github.com/server/transaction/model"
 )
 
 type malformedRequest struct {
@@ -137,13 +137,14 @@ func CreateTransaction(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s http://%s%s", r.Method, r.Host, r.RequestURI)
 
 	var transaction model.TransactionReq
-	var resp *model.Transaction
+	var resp string
 	var err error
 	var code int
 	err = decodeJSONBody(w, r, &transaction)
 	if err == nil {
 		resp, err = db.InsertTransaction(&transaction)
 	}
+
 	httpSendResponse(w, code, resp, err)
 }
 
@@ -199,6 +200,10 @@ func ReadTransactions(w http.ResponseWriter, r *http.Request) {
 	var code int
 
 	resp = db.SelectTransactions(pageInfo, filterInfo)
+
+	if len(resp) == 0 {
+		httpSendResponse(w, code, "There ins`t nothing in DB now", err)
+	}
 
 	httpSendResponse(w, code, resp, err)
 }

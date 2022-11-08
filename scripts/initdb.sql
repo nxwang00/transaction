@@ -1,4 +1,4 @@
-CREATE TABLE trans (
+CREATE TABLE IF NOT EXISTS trans (
   id serial NOT NULL,
   origin character varying(30) COLLATE pg_catalog."default" NOT NULL,
   user_id integer NOT NULL,

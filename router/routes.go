@@ -3,7 +3,7 @@ package router
 import (
 	"net/http"
 
-	handler "github.com/test/transaction/handlers"
+	handler "github.com/server/transaction/handlers"
 )
 
 // Route type description
